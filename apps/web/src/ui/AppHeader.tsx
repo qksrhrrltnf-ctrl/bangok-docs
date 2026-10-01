@@ -3,6 +3,7 @@ import { signOut } from '../actions';
 import { BRAND } from '../branding';
 import { BASE } from '../env';
 import { useApp } from '../store';
+import { AccountChip } from './AccountChip';
 
 /** 메인·관리자·라이선스 화면 공통 머리글 */
 export function AppHeader({ title = BRAND.appName }: { title?: string }) {
@@ -30,16 +31,7 @@ export function AppHeader({ title = BRAND.appName }: { title?: string }) {
         <button type="button" className="btn btn-ghost" onClick={() => go('privacy')}>
           개인정보 처리 안내
         </button>
-        <span className="user-chip" title={user?.email}>
-          {user?.picture ? (
-            <img src={user.picture} alt="" width={26} height={26} referrerPolicy="no-referrer" />
-          ) : (
-            <span className="avatar" aria-hidden="true">
-              {user?.name?.slice(0, 1) ?? '?'}
-            </span>
-          )}
-          {user?.name}
-        </span>
+        <AccountChip onLogout={() => setConfirming(true)} />
         <button type="button" className="btn btn-dark" onClick={() => setConfirming(true)}>
           로그아웃
         </button>

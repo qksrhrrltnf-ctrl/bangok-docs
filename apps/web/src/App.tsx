@@ -19,7 +19,7 @@ export function App() {
   const user = useApp((s) => s.user);
   const screen = useApp((s) => s.screen);
   const doc = useApp((s) => s.doc);
-  const { status, error } = useAuth();
+  const { status, error, reviewSignIn } = useAuth();
 
   useEffect(() => {
     let alive = true;
@@ -42,7 +42,7 @@ export function App() {
     );
   }
 
-  if (!user) return <LoginScreen error={error} />;
+  if (!user) return <LoginScreen error={error} onReviewSignIn={reviewSignIn} />;
 
   if (config.flags.maintenanceMode && user.role !== 'admin') {
     return (

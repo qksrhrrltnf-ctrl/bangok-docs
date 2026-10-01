@@ -254,3 +254,31 @@ test('11.6인치 크롬북(1366×635 브라우저 탭)에서 시작 버튼과 �
   const frameHeight = await page.locator('.editor-frame').evaluate((e) => e.getBoundingClientRect().height);
   expect(frameHeight).toBeGreaterThanOrEqual(560);
 });
+
+test('로그인한 계정이 항상 보이고, 로그아웃 후 다시 들어갈 수 있다', async ({ page }) => {
+  // 처음 화면: 이름·이메일·구분 표시
+  const chip = page.locator('.app-header .account-chip');
+  await expect(chip).toContainText('검토용 계정');
+  await expect(chip).toContainText('dev@localhost');
+  await chip.click();
+  const menu = page.getByRole('dialog', { name: '계정 정보' });
+  await expect(menu).toContainText('dev@localhost');
+  await expect(menu).toContainText('검토용');
+  await page.keyboard.press('Escape');
+
+  // 편집 화면에서도 계정이 보인다
+  await page.getByRole('button', { name: /새 문서/ }).click();
+  await expect(page.locator('.editor-bar .account-chip')).toContainText('dev@localhost');
+  await page.getByRole('button', { name: '문서 닫고 처음 화면으로' }).click();
+
+  // 로그아웃 → 로그인 화면 → 새로고침해도 저절로 들어가지 않음 → 다시 들어가기
+  await page.getByRole('button', { name: '로그아웃', exact: true }).click();
+  await page.getByRole('button', { name: '임시 문서 남기기' }).click();
+  const reEnter = page.getByRole('button', { name: '검토용 계정으로 들어가기' });
+  await expect(reEnter).toBeVisible();
+  await page.reload();
+  await expect(reEnter).toBeVisible();
+  await reEnter.click();
+  await expect(page.getByRole('button', { name: /새 문서/ })).toBeVisible();
+  await expect(chip).toContainText('dev@localhost');
+});

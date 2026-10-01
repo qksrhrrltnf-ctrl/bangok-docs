@@ -9,6 +9,7 @@ import { printAsPdf } from '../pdf/printPdf';
 import { addRecent } from '../recent/recentDocs';
 import { useApp } from '../store';
 import { sizeBucket, track } from '../telemetry/events';
+import { AccountChip } from './AccountChip';
 import { SaveDialog, type SaveChoice } from './SaveDialog';
 
 const AUTOSAVE_INTERVAL_MS = 60_000;
@@ -276,6 +277,7 @@ export function EditorScreen() {
             </button>
           )}
         </div>
+        <AccountChip compact />
       </header>
 
       {showWarnings && doc.compat.warnings.length > 0 && (

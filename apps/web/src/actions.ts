@@ -1,5 +1,6 @@
 import { deleteAllDrafts, getDraft } from './autosave/draftStore';
 import { disableGoogleAutoSelect } from './auth/googleSignIn';
+import { SIGNED_OUT_KEY } from './auth/useAuth';
 import { prepareDocument, prepareNewDocument, type DocSource, type OpenedDocument } from './documents/documentService';
 import { snapshotOf } from './drive/driveClient';
 import { getDriveClient } from './drive/driveService';
@@ -135,6 +136,8 @@ export async function signOut(options: { deleteDrafts: boolean }): Promise<void>
   shutdownEngine();
   try {
     sessionStorage.clear();
+    // 이 탭에서 직접 로그아웃했음을 기억한다. 검토용 빌드가 바로 다시 자동 로그인하지 않게 한다.
+    sessionStorage.setItem(SIGNED_OUT_KEY, '1');
   } catch {
     // 무시
   }

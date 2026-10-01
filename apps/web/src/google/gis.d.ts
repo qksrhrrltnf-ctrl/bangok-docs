@@ -17,7 +17,14 @@ declare namespace google.accounts.id {
     ux_mode?: 'popup' | 'redirect';
   }
   function initialize(config: IdConfiguration): void;
-  function prompt(): void;
+  interface PromptMomentNotification {
+    isNotDisplayed?(): boolean;
+    isSkippedMoment?(): boolean;
+    isDismissedMoment?(): boolean;
+    getNotDisplayedReason?(): string;
+    getSkippedReason?(): string;
+  }
+  function prompt(listener?: (n: PromptMomentNotification) => void): void;
   function renderButton(parent: HTMLElement, options: Record<string, unknown>): void;
   function disableAutoSelect(): void;
   function cancel(): void;
