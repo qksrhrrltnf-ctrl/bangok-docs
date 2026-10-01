@@ -1,0 +1,35 @@
+{
+  "name": "school-hwp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "반곡고등학교 크롬북용 HWPX/HWP 문서 편집기",
+  "author": "반곡고등학교 2026년 정보부장",
+  "license": "UNLICENSED",
+  "type": "module",
+  "workspaces": [
+    "apps/web",
+    "apps/api"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build:studio": "node scripts/build-studio.mjs",
+    "licenses": "node scripts/collect-licenses.mjs",
+    "dev": "npm run dev -w apps/web",
+    "dev:api": "npm run dev -w apps/api",
+    "build": "npm run build -w apps/web && npm run build -w apps/api",
+    "typecheck": "npm run typecheck -w apps/web && npm run typecheck -w apps/api",
+    "test": "npm run test -w apps/web && npm run test -w apps/api && node --test scripts/*.test.mjs",
+    "test:compat": "node tests/compatibility/run.mjs",
+    "test:e2e": "playwright test -c tests/e2e/playwright.config.ts",
+    "test:e2e:prod": "playwright test -c tests/e2e/playwright.prod.config.ts",
+    "verify": "npm run typecheck && npm test && npm run test:compat && npm run build && npm run test:e2e && npm run test:e2e:prod",
+    "fixtures:generate": "node tests/fixtures/generate.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "review": "npm run build:e2e -w apps/web && npm run preview:e2e -w apps/web"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

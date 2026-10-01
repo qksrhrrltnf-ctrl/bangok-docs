@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: 의존성 설치
+        run: npm ci --no-audit --no-fund
+
+      - name: rhwp-studio 자체 호스팅 빌드 (버전 고정)
+        run: npm run build:studio
+        env:
+          SCHOOL_HWP_BUILD_DIR: ${{ runner.temp }}/school-hwp-build
+
+      - name: 타입 검사
+        run: npm run typecheck
+
+      - name: 단위 테스트
+        run: npm test
+
+      - name: 합성 문서 생성 + 호환성 round-trip 테스트
+        run: |
+          npm run fixtures:generate
+          npm run test:compat
+
+      - name: 운영 빌드
+        run: npm run build
+
+      - name: Playwright 브라우저 설치
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E (개발 서버)
+        run: npm run test:e2e
+        env:
+          PLAYWRIGHT_CHANNEL: chromium
+
+      - name: E2E (운영 빌드 + CSP + 오프라인)
+        run: npm run test:e2e:prod
+        env:
+          PLAYWRIGHT_CHANNEL: chromium
+
+      - name: 실패 시 결과 보관
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test-results/
+            tests/compatibility/report/
+          retention-days: 7

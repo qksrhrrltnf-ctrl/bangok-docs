@@ -1,0 +1,34 @@
+{
+  "name": "@school-hwp/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "반곡고 문서 편집기 (웹 앱)",
+  "author": "반곡고등학교 2026년 정보부장",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "build:e2e": "vite build --mode e2e",
+    "preview:e2e": "vite preview --mode e2e",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@rhwp/core": "0.8.6",
+    "@rhwp/editor": "0.8.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.1",
+    "vite-plugin-pwa": "1.3.0",
+    "vitest": "5.0.2"
+  }
+}

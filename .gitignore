@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.vite/
+coverage/
+*.log
+
+# 로컬 환경 변수 (Client ID 등). 예시는 .env.example 참고
+.env
+.env.local
+.env.*.local
+
+# rhwp-studio 빌드 산출물 (scripts/build-studio.mjs가 생성)
+apps/web/public/studio/
+apps/web/public/rhwp_bg.wasm
+# 제3자 라이선스 고지 (scripts/collect-licenses.mjs 가 생성)
+apps/web/public/licenses/
+
+# 테스트 산출물
+test-results/
+playwright-report/
+tests/compatibility/report/
+
+# 익명화되지 않은 학교 문서는 절대 커밋하지 않는다 (SEC-010)
+tests/fixtures/private/
+dist-e2e/

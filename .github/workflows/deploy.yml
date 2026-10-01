@@ -1,0 +1,74 @@
+name: Deploy
+
+# 수동 실행 전용. 사전 준비는 docs/deployment.md 참고.
+# 필요한 저장소 설정 (환경별 GitHub Environment 에 등록):
+#   vars:    GCP_PROJECT_ID, GCP_REGION, FIREBASE_SITE, WIF_PROVIDER, DEPLOY_SERVICE_ACCOUNT,
+#            VITE_GOOGLE_CLIENT_ID, VITE_GOOGLE_API_KEY, VITE_GOOGLE_APP_ID, VITE_ALLOWED_DOMAIN,
+#            API_ADMIN_EMAILS, API_TEACHER_EMAIL_PATTERN
+#   (키 없이 Workload Identity Federation 으로 인증한다. 서비스 계정 키 파일을 저장소에 두지 않는다.)
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 배포 환경
+        type: choice
+        options: [development, staging, production]
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 30
+    env:
+      VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+      VITE_GOOGLE_API_KEY: ${{ vars.VITE_GOOGLE_API_KEY }}
+      VITE_GOOGLE_APP_ID: ${{ vars.VITE_GOOGLE_APP_ID }}
+      VITE_ALLOWED_DOMAIN: ${{ vars.VITE_ALLOWED_DOMAIN }}
+      VITE_API_BASE: /api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build:studio
+        env:
+          SCHOOL_HWP_BUILD_DIR: ${{ runner.temp }}/school-hwp-build
+      - run: npm run typecheck && npm test
+      - run: npm run fixtures:generate && npm run test:compat
+      - run: npm run build
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOY_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: API 이미지 빌드·푸시 (Artifact Registry)
+        run: |
+          IMAGE="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/school-hwp/api:${{ github.sha }}"
+          gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
+          docker build -f apps/api/Dockerfile -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: API 배포 (Cloud Run)
+        run: |
+          gcloud run deploy school-hwp-api \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --image "$IMAGE" \
+            --update-env-vars "GOOGLE_CLIENT_ID=${{ vars.VITE_GOOGLE_CLIENT_ID }},ALLOWED_DOMAIN=${{ vars.VITE_ALLOWED_DOMAIN }},ADMIN_EMAILS=${{ vars.API_ADMIN_EMAILS }},TEACHER_EMAIL_PATTERN=${{ vars.API_TEACHER_EMAIL_PATTERN }},STORE=firestore" \
+            --allow-unauthenticated \
+            --max-instances 5 \
+            --memory 512Mi
+
+      - name: 웹 배포 (Firebase Hosting)
+        run: npx --yes firebase-tools@latest deploy --only hosting --project "${{ vars.GCP_PROJECT_ID }}" --non-interactive
