@@ -1,4 +1,4 @@
-import { env } from '../env';
+import { BASE, env } from '../env';
 
 /** PRD 20장 기능 플래그 + 11.3 AppConfig */
 export interface FeatureFlags {
@@ -112,7 +112,7 @@ export async function loadConfig(): Promise<AppConfig> {
     }
   }
   try {
-    const config = normalizeConfig(await fetchJson('/config.json', 3000), 'static');
+    const config = normalizeConfig(await fetchJson(`${BASE}config.json`, 3000), 'static');
     writeCache(config);
     return config;
   } catch {

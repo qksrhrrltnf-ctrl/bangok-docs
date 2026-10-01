@@ -45,9 +45,13 @@ const cacheBase = process.env.SCHOOL_HWP_BUILD_DIR
 const work = join(cacheBase, `rhwp-v${version}`);
 const studio = join(work, 'rhwp-studio');
 const isWin = process.platform === 'win32';
+// 앱이 하위 경로(예: GitHub Pages /school-hwp/)에서 서비스되면 편집기도 그 아래 /studio/ 에 둔다.
+const appBase = normalizeBase(process.env.APP_BASE);
+const studioBase = `${appBase}studio/`;
 
 log(`rhwp 버전: ${version}`);
 log(`작업 폴더: ${work}`);
+log(`편집기 경로: ${studioBase}`);
 
 // 1) sparse clone (이미 있으면 재사용)
 if (!existsSync(join(studio, 'package.json'))) {
@@ -81,7 +85,7 @@ if (!existsSync(join(studio, 'node_modules', 'vite'))) {
   run(npmCmd(), ['ci', '--no-audit', '--no-fund', '--ignore-scripts'], studio);
 }
 
-// 4) 학교용 빌드 설정: 편집기 자체 PWA 제거 + base=/studio/
+// 4) 학교용 빌드 설정: 편집기 자체 PWA 제거 + base=<APP_BASE>studio/
 const schoolConfig = join(studio, 'vite.school.config.ts');
 writeFileSync(schoolConfig, `// 자동 생성 파일 — scripts/build-studio.mjs
 import original from './vite.config.ts';
@@ -96,7 +100,7 @@ const plugins = [base.plugins ?? []]
 
 export default {
   ...base,
-  base: '/studio/',
+  base: ${JSON.stringify(studioBase)},
   plugins,
   build: { ...(base.build ?? {}), outDir: 'dist-school', emptyOutDir: true },
 };
@@ -121,6 +125,7 @@ if (!wasm) fail('편집기 산출물에서 rhwp_bg*.wasm 을 찾지 못했습니
 writeFileSync(join(OUT, 'studio-manifest.json'), JSON.stringify({
   rhwpVersion: version,
   wasm: `assets/${wasm}`,
+  base: studioBase,
   builtAt: new Date().toISOString(),
 }, null, 2));
 
@@ -132,6 +137,10 @@ run(process.execPath, [join(ROOT, 'scripts', 'collect-licenses.mjs')], ROOT);
 function run(cmd, args, cwd, extraEnv = {}) {
   log(`$ ${cmd} ${args.join(' ')}`);
   execFileSync(cmd, args, { cwd, stdio: 'inherit', env: { ...process.env, ...extraEnv }, shell: isWin && /\.cmd$/.test(cmd) });
+}
+function normalizeBase(v) {
+  const b = (v ?? '/').trim() || '/';
+  return `/${b.replace(/^\/+|\/+$/g, '')}/`.replace(/^\/\/$/, '/');
 }
 function npmCmd() { return isWin ? 'npm.cmd' : 'npm'; }
 function npxCmd() { return isWin ? 'npx.cmd' : 'npx'; }

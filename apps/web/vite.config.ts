@@ -6,6 +6,13 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 const rhwpVersion: string = pkg.dependencies['@rhwp/core'];
+/** 서비스 기준 경로. GitHub Pages 프로젝트 사이트면 '/저장소이름/', 자체 도메인이면 '/' */
+const appBase = (() => {
+  const b = (process.env.APP_BASE ?? '/').trim() || '/';
+  const n = `/${b.replace(/^\/+|\/+$/g, '')}/`;
+  return n === '//' ? '/' : n;
+})();
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const brand = JSON.parse(readFileSync(new URL('./src/branding.json', import.meta.url), 'utf8'));
 
 /** index.html 의 %APP_NAME% 등을 branding.json 값으로 바꾼다. */
@@ -51,6 +58,7 @@ function productionHeaders(): Record<string, string> {
 }
 
 export default defineConfig(({ mode }) => ({
+  base: appBase,
   // e2e 모드 빌드는 배포 대상(dist)과 섞이지 않도록 dist-e2e 에 만든다.
   build: { outDir: mode === 'e2e' ? 'dist-e2e' : 'dist' },
   define: {
@@ -71,8 +79,9 @@ export default defineConfig(({ mode }) => ({
         short_name: brand.appShortName,
         description: brand.appDescription,
         lang: 'ko',
-        start_url: '/',
-        scope: '/',
+        start_url: appBase,
+        scope: appBase,
+        id: appBase,
         display: 'standalone',
         theme_color: '#1f4e8c',
         background_color: '#ffffff',
@@ -91,12 +100,12 @@ export default defineConfig(({ mode }) => ({
         // 편집기 주소의 ?chrome=embed&renderer=... 를 무시해야 오프라인에서도 캐시와 일치한다.
         ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^chrome$/, /^renderer$/],
         maximumFileSizeToCacheInBytes: 16 * 1024 * 1024,
-        navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/studio\//, /^\/api\//],
+        navigateFallback: `${appBase}index.html`,
+        navigateFallbackDenylist: [new RegExp(`^${escapeRe(appBase)}studio/`), /^\/api\//, new RegExp(`^${escapeRe(appBase)}licenses/`)],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname === '/config.json',
+            urlPattern: ({ url }) => url.pathname === `${appBase}config.json`,
             handler: 'NetworkFirst',
             options: { cacheName: 'app-config', networkTimeoutSeconds: 3 },
           },

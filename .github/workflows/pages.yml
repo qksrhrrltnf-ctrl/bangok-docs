@@ -1,0 +1,94 @@
+name: GitHub Pages 배포
+
+# main 에 올리면 자동으로 GitHub Pages 에 배포한다.
+# 주소: https://<계정>.github.io/<저장소>/ (사용자 도메인을 연결하면 그 도메인 루트)
+#
+# Google 로그인 설정(저장소 Settings → Secrets and variables → Actions → Variables)이
+#   - 없으면: 검토용 빌드 (로그인 생략, 화면에 '검토용 빌드' 표시, Drive 꺼짐)
+#   - 있으면: 운영 빌드 (반곡고 Google 계정 로그인 필수)
+# 변수: VITE_GOOGLE_CLIENT_ID, VITE_GOOGLE_API_KEY, VITE_GOOGLE_APP_ID, (선택) PAGES_CUSTOM_DOMAIN
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+      VITE_GOOGLE_API_KEY: ${{ vars.VITE_GOOGLE_API_KEY }}
+      VITE_GOOGLE_APP_ID: ${{ vars.VITE_GOOGLE_APP_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: 기준 경로 결정
+        id: base
+        run: |
+          if [ -n "${{ vars.PAGES_CUSTOM_DOMAIN }}" ]; then
+            echo "APP_BASE=/" >> "$GITHUB_ENV"
+          else
+            echo "APP_BASE=/${{ github.event.repository.name }}/" >> "$GITHUB_ENV"
+          fi
+          if [ -n "$VITE_GOOGLE_CLIENT_ID" ]; then
+            echo "BUILD_MODE=production" >> "$GITHUB_ENV"
+            echo "VITE_DEV_AUTH_BYPASS=false" >> "$GITHUB_ENV"
+          else
+            echo "BUILD_MODE=review" >> "$GITHUB_ENV"
+            echo "VITE_DEV_AUTH_BYPASS=true" >> "$GITHUB_ENV"
+          fi
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: 편집기(rhwp-studio) 빌드 + 라이선스 고지 수집
+        run: npm run build:studio
+        env:
+          SCHOOL_HWP_BUILD_DIR: ${{ runner.temp }}/school-hwp-build
+
+      - name: 타입 검사·단위 테스트
+        run: npm run typecheck && npm test
+
+      - name: 호환성 테스트
+        run: npm run fixtures:generate && npm run test:compat
+
+      - name: 웹 빌드 (${{ env.BUILD_MODE }}, 기준 경로 ${{ env.APP_BASE }})
+        run: npx vite build --mode "$BUILD_MODE"
+        working-directory: apps/web
+
+      - name: GitHub Pages 준비 (CSP 메타 태그, 사용자 도메인)
+        run: |
+          node scripts/prepare-pages.mjs apps/web/dist
+          if [ -n "${{ vars.PAGES_CUSTOM_DOMAIN }}" ]; then
+            echo "${{ vars.PAGES_CUSTOM_DOMAIN }}" > apps/web/dist/CNAME
+          fi
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

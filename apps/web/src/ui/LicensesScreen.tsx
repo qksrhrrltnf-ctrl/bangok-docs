@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BRAND, COPYRIGHT, DEVELOPER_CREDIT, HWP_SPEC_NOTICE, INDEPENDENCE_NOTICE, TRADEMARK_NOTICES } from '../branding';
-import { env } from '../env';
+import { BASE, env } from '../env';
 import { useApp } from '../store';
 import { AppHeader } from './AppHeader';
 import { DocLayout } from './DocLayout';
@@ -57,7 +57,7 @@ export function LicensesScreen() {
   const [index, setIndex] = useState<LicenseIndex | null>(null);
 
   useEffect(() => {
-    fetch('/licenses/licenses.json')
+    fetch(`${BASE}licenses/licenses.json`)
       .then((r) => (r.ok ? r.json() : null))
       .then(setIndex, () => setIndex(null));
   }, []);
@@ -158,7 +158,7 @@ export function LicensesScreen() {
               ? `이 앱이 포함한 오픈소스 구성 요소는 모두 ${index.components.length}개입니다 (문서 엔진에 컴파일된 Rust 라이브러리 포함). `
               : ''}
             각 구성 요소의 저작권 고지와 라이선스 원문 전체는{' '}
-            <a href="/licenses/THIRD_PARTY_NOTICES.txt" target="_blank" rel="noreferrer">
+            <a href={`${BASE}licenses/THIRD_PARTY_NOTICES.txt`} target="_blank" rel="noreferrer">
               제3자 소프트웨어 고지
             </a>
             에 있습니다.

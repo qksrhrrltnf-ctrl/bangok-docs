@@ -27,7 +27,8 @@
     "verify": "npm run typecheck && npm test && npm run test:compat && npm run build && npm run test:e2e && npm run test:e2e:prod",
     "fixtures:generate": "node tests/fixtures/generate.mjs",
     "icons": "node scripts/make-icons.mjs",
-    "review": "npm run build:e2e -w apps/web && npm run preview:e2e -w apps/web"
+    "review": "npm run build:e2e -w apps/web && npm run preview:e2e -w apps/web",
+    "build:pages": "node scripts/build-studio.mjs && npm run build -w apps/web && node scripts/prepare-pages.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0"

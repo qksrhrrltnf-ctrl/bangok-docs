@@ -45,6 +45,10 @@
 - `font-src` / `connect-src` 의 `cdn.jsdelivr.net`: 편집기가 대체 웹폰트를 받는 곳 (docs/fonts.md). 폰트를 자체 호스팅하면 제거한다.
 - CSP 위반이 없는지는 `npm run test:e2e:prod` 가 앱과 편집기 iframe 모두에서 확인한다.
 
+### GitHub Pages 배포의 제약
+
+GitHub Pages 는 응답 헤더를 지정할 수 없어 CSP 를 메타 태그로 넣는다. 메타 태그에서는 `frame-ancestors` 가 무시되므로 다른 사이트가 앱이나 편집기를 iframe 으로 품는 것(클릭재킹)을 막지 못한다. 학생 운영 배포는 헤더를 지정할 수 있는 Firebase Hosting(또는 같은 기능의 호스팅)을 권장한다.
+
 ### 알려진 위험: 편집기와 앱이 같은 출처
 
 편집기 iframe 은 앱과 같은 출처라 편집기 렌더러에 XSS 취약점이 생기면 앱의 메모리(Drive 토큰 등)에 접근할 수 있다. 완화: 기본 렌더러가 canvas2d(문서 내용을 HTML 로 넣지 않음), 엄격한 CSP(인라인 스크립트 차단), 버전 고정과 업데이트 전 검증. 더 강하게 하려면 편집기를 별도 출처(예: `studio.docs.bangok.hs.kr`)로 옮기고 `STUDIO_URL` 과 엔진 WASM 경로를 바꾼다 (Phase 3 이전 검토 권장).

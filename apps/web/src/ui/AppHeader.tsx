@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { signOut } from '../actions';
 import { BRAND } from '../branding';
+import { BASE } from '../env';
 import { useApp } from '../store';
 
 /** 메인·관리자·라이선스 화면 공통 머리글 */
@@ -13,7 +14,7 @@ export function AppHeader({ title = BRAND.appName }: { title?: string }) {
   return (
     <header className="app-header">
       <button type="button" className="app-title" onClick={() => go('home')}>
-        <img src="/icons/icon-192.png" alt="" width={28} height={28} />
+        <img src={`${BASE}icons/icon-192.png`} alt="" width={28} height={28} />
         <span>{title}</span>
       </button>
       <nav className="header-nav" aria-label="설정">

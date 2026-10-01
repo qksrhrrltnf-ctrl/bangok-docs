@@ -9,6 +9,26 @@
 
 앱은 두 구성 모두에서 같은 기능을 한다. B 는 관리자 화면의 운영 지표와 서버 측 역할 판별을 더한다.
 
+## GitHub Pages (가장 간단한 방법)
+
+Google Cloud 없이 GitHub 만으로 배포한다. `main` 에 올리면 `.github/workflows/pages.yml` 이 테스트 → 빌드 → 배포를 한다.
+
+1. GitHub 저장소 → Settings → Pages → Source 를 **GitHub Actions** 로 바꾼다.
+2. `main` 에 push 하거나 Actions → "GitHub Pages 배포" → Run workflow.
+3. 주소: `https://<계정>.github.io/<저장소>/`. 학교 도메인을 쓰려면 저장소 변수 `PAGES_CUSTOM_DOMAIN` 에 도메인(예: `docs.bangok.hs.kr`)을 넣고 DNS 에 CNAME 을 추가한다.
+
+| 저장소 변수 `VITE_GOOGLE_CLIENT_ID` | 배포되는 빌드 |
+|---|---|
+| 없음 | **검토용 빌드**: 로그인 생략, 화면에 '검토용 빌드' 표시, Drive 꺼짐 |
+| 있음 (+ `VITE_GOOGLE_API_KEY`, `VITE_GOOGLE_APP_ID`) | 운영 빌드: 반곡고 Google 계정 로그인 필수 |
+
+제약:
+
+- 무료 GitHub 계정에서는 **공개 저장소만** Pages 를 쓸 수 있다. 비공개 저장소는 GitHub Pro/Team(교육용 무료 혜택 포함)이 필요하다.
+- 검토용 빌드는 주소를 아는 누구나 열 수 있다. 문서는 각자의 브라우저에서만 처리되므로 학교 데이터가 노출되지는 않지만, 학생 배포 전에는 Google 로그인 변수를 넣어 운영 빌드로 바꾼다.
+- 응답 헤더를 지정할 수 없어 보안 정책(CSP)을 HTML 메타 태그로 넣는다(`scripts/prepare-pages.mjs`). `frame-ancestors` 는 메타 태그로 동작하지 않는다 (docs/security.md).
+- Google OAuth 클라이언트의 '승인된 JavaScript 원본'에 `https://<계정>.github.io` 를 추가해야 운영 빌드 로그인이 된다.
+
 ## 사전 준비 (한 번)
 
 1. `docs/google-workspace-integration.md` 1~6단계
