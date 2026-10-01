@@ -20,7 +20,7 @@
  * 환경 변수 SCHOOL_HWP_BUILD_DIR 로 바꿀 수 있다.
  */
 import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -78,6 +78,22 @@ if (!coreReady) {
   run('tar', ['-xzf', tgz], packDir);
   cpSync(join(packDir, 'package'), pkgDir, { recursive: true });
   rmSync(packDir, { recursive: true, force: true });
+}
+
+// 2-1) rhwp-studio/public/fonts 는 저장소의 assets/fonts 를 가리키는 심볼릭 링크다.
+// rhwp-studio 만 받으므로 리눅스에서는 끊어진 링크가 되어 빌드가 실패한다(Windows 는 빈 파일).
+// 글꼴은 공개 CDN 에서 받고 앱이 재배포하지 않으므로(docs/legal-review.md 5절) 빈 폴더로 바꾼다.
+const fontsDir = join(studio, 'public', 'fonts');
+let fontsIsDir = false;
+try {
+  fontsIsDir = lstatSync(fontsDir).isDirectory();
+} catch {
+  fontsIsDir = false;
+}
+if (!fontsIsDir) {
+  rmSync(fontsDir, { recursive: true, force: true });
+  mkdirSync(fontsDir, { recursive: true });
+  writeFileSync(join(fontsDir, 'README.txt'), '글꼴은 공개 CDN 에서 불러온다 (docs/fonts.md).\n');
 }
 
 // 3) 의존성 설치
