@@ -173,8 +173,8 @@ test('표가 있는 HWPX 활동지를 열 수 있다', async ({ page }) => {
   await setNextOpen(page, '모둠 활동지.hwpx', readFileSync(join(FIXTURES, 'table-worksheet.hwpx')));
   await page.getByRole('button', { name: /파일 열기/ }).click();
   await waitEditorReady(page);
-  await expect(page.locator('.editor-status')).toContainText('1쪽');
-  await expect(page.locator('.editor-status')).toContainText('HWPX');
+  await expect(page.locator('.doc-meta')).toContainText('1쪽');
+  await expect(page.locator('.doc-meta')).toContainText('HWPX');
 });
 
 test('손상된 파일은 열지 않고 오류 코드를 보여 준다 (SEC-008)', async ({ page }) => {
@@ -236,4 +236,21 @@ test('인터랙션: 마스코트 팁과 목차 스크롤 스파이 (CNM 디자�
   await toc.getByRole('link', { name: /글꼴/ }).click();
   await expect(toc.getByRole('link', { name: /글꼴/ })).toHaveClass(/active/);
   await expect(page.locator('#font-title')).toBeInViewport();
+});
+
+test('11.6인치 크롬북(1366×635 브라우저 탭)에서 시작 버튼과 편집 영역이 충분하다', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 635 });
+  await page.reload();
+  const cards = page.locator('.action-card');
+  await expect(cards.first()).toBeVisible();
+  for (const box of await cards.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().bottom))) {
+    expect(box).toBeLessThanOrEqual(635);
+  }
+  await page.getByRole('button', { name: /새 문서/ }).click();
+  await expect(page.locator('.editor-frame iframe')).toHaveCount(1, { timeout: 30_000 });
+  await expect(page.frameLocator('.editor-frame iframe').locator('#scroll-container canvas').first()).toBeVisible({ timeout: 60_000 });
+  const barHeight = await page.locator('.editor-bar').evaluate((e) => e.getBoundingClientRect().height);
+  expect(barHeight).toBeLessThanOrEqual(64);
+  const frameHeight = await page.locator('.editor-frame').evaluate((e) => e.getBoundingClientRect().height);
+  expect(frameHeight).toBeGreaterThanOrEqual(560);
 });

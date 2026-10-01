@@ -242,41 +242,41 @@ export function EditorScreen() {
 
   return (
     <div className="editor-screen">
-      <header className="editor-header">
-        <button type="button" className="btn btn-ghost" onClick={() => void requestClose()} aria-label="문서 닫고 처음 화면으로">
-          ← 처음 화면
+      {/* 크롬북 화면을 위해 문서 정보·파일 동작·상태를 한 줄에 모은다 (11.6" 에서 편집 영역 확보) */}
+      <header className="editor-bar" role="toolbar" aria-label="파일">
+        <button type="button" className="btn btn-ghost btn-back" onClick={() => void requestClose()} aria-label="문서 닫고 처음 화면으로" title="처음 화면">
+          ←<span className="label-wide"> 처음</span>
         </button>
-        <div className="doc-title">
+        <div className="doc-title" title={`${doc.fileName} · ${locationText}`}>
           <strong>{doc.fileName}</strong>
-          <span className="muted"> · {locationText}</span>
+          <span className="doc-meta" aria-label={`${pageCount}쪽, ${doc.sourceFormat.toUpperCase()} 형식, ${locationText}`}>
+            {pageCount}쪽 · {doc.sourceFormat.toUpperCase()} · {locationText}
+          </span>
         </div>
         <span className={`save-state save-${saveState}`} role="status" aria-live="polite">
           {statusText}
         </span>
-        <span className="user-chip" title={user.email}>
-          {user.name}
-        </span>
-      </header>
-
-      <div className="editor-toolbar" role="toolbar" aria-label="파일">
-        <button type="button" className="btn btn-primary" onClick={save} disabled={!ready || saveState === 'saving'}>
-          저장 <kbd>Ctrl+S</kbd>
-        </button>
-        <button type="button" className="btn" onClick={saveAs} disabled={!ready || saveState === 'saving'}>
-          다른 이름으로 저장 <kbd>Ctrl+Shift+S</kbd>
-        </button>
-        {flags.allowPdfExport && (
-          <button type="button" className="btn" onClick={() => void exportPdf()} disabled={!ready}>
-            PDF로 내보내기 <kbd>Ctrl+P</kbd>
-          </button>
-        )}
-        <span className="toolbar-spacer" />
         {doc.compat.warnings.length > 0 && !showWarnings && (
           <button type="button" className="btn btn-ghost" onClick={() => setShowWarnings(true)}>
-            호환성 안내 {doc.compat.warnings.length}건
+            ⚠ 호환성 {doc.compat.warnings.length}
           </button>
         )}
-      </div>
+        <div className="editor-actions">
+          <button type="button" className="btn btn-primary" onClick={save} disabled={!ready || saveState === 'saving'} title="저장 (Ctrl+S)">
+            저장 <kbd>Ctrl+S</kbd>
+          </button>
+          <button type="button" className="btn" onClick={saveAs} disabled={!ready || saveState === 'saving'} title="다른 이름으로 저장 (Ctrl+Shift+S)">
+            다른 이름으로 저장
+          </button>
+          {flags.allowPdfExport && (
+            <button type="button" className="btn" onClick={() => void exportPdf()} disabled={!ready} title="PDF로 내보내기 (Ctrl+P)">
+              <span>
+                PDF<span className="label-wide">로 내보내기</span>
+              </span>
+            </button>
+          )}
+        </div>
+      </header>
 
       {showWarnings && doc.compat.warnings.length > 0 && (
         <div className="warning-banner" role="note">
@@ -292,12 +292,6 @@ export function EditorScreen() {
       )}
 
       <div className="editor-frame" ref={containerRef} aria-busy={!ready} />
-
-      <footer className="editor-status">
-        <span>{pageCount}쪽</span>
-        <span>{doc.sourceFormat.toUpperCase()}</span>
-        <span className="muted">크롬북에서 편집 · 문서는 학교 서버로 전송되지 않습니다</span>
-      </footer>
 
       {saveDialog && (
         <SaveDialog

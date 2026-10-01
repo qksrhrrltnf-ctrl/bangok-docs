@@ -897,33 +897,61 @@ details > summary {
   height: 100%;
   background: var(--bg);
 }
-.editor-header {
+/* 한 줄 편집 막대: 문서 정보 · 저장 상태 · 파일 동작 (크롬북 11.6" 에서 편집 영역 확보) */
+.editor-bar {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
-  padding: 0.5rem 0.9rem;
+  gap: 0.6rem;
+  min-height: 52px;
+  padding: 0.35rem 0.7rem;
   background: var(--bg);
   border-bottom: var(--line);
+}
+.editor-bar .btn {
+  min-height: 36px;
+  padding: 0.3rem 0.9rem;
+}
+.btn-back {
+  padding-inline: 0.7rem;
 }
 .doc-title {
   flex: 1;
   min-width: 0;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.2;
   overflow: hidden;
   white-space: nowrap;
 }
 .doc-title strong {
-  font: 900 1.15rem var(--disp);
+  font: 900 1.05rem var(--disp);
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.doc-meta {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: none;
+}
 .save-state {
-  padding: 0.2rem 0.85rem;
+  flex: none;
+  padding: 0.15rem 0.8rem;
   border: 2px solid var(--ink);
   border-radius: 999px;
-  font: 800 0.88rem var(--disp);
+  font: 800 0.85rem var(--disp);
+  white-space: nowrap;
+  max-width: 22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: background 0.2s;
 }
 .save-saved {
@@ -942,29 +970,18 @@ details > summary {
   92% { transform: rotate(-3deg); }
   96% { transform: rotate(3deg); }
 }
-.editor-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.9rem;
-  background: var(--cream);
-  border-bottom: var(--line);
-  flex-wrap: wrap;
-}
-.toolbar-spacer {
-  flex: 1;
-}
 .warning-banner {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin: 0.6rem 0.9rem 0;
-  padding: 0.6rem 1rem;
+  margin: 0.4rem 0.5rem 0;
+  padding: 0.4rem 0.9rem;
   background: var(--red-soft);
   border: var(--line);
   border-left: 9px solid var(--red);
   border-radius: 12px;
+  font-size: 0.92rem;
   font-weight: 500;
   animation: slide-down 0.35s var(--ease);
 }
@@ -981,9 +998,9 @@ details > summary {
 .editor-frame {
   flex: 1;
   min-height: 0;
-  margin: 0.6rem 0.9rem 0;
+  margin: 0.4rem 0.5rem 0;
   border: var(--line);
-  border-radius: 14px 14px 0 0;
+  border-radius: 12px 12px 0 0;
   border-bottom: 0;
   overflow: hidden;
   background: #e8e3d8;
@@ -994,19 +1011,27 @@ details > summary {
   height: 100%;
   border: 0;
 }
-.editor-status {
-  display: flex;
-  align-items: center;
-  gap: 1.1rem;
-  padding: 0.3rem 0.9rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  background: var(--ink);
-  color: var(--bg);
+/* 화면이 좁으면 단축키 표시와 긴 글자를 줄인다 */
+@media (max-width: 1180px) {
+  .editor-bar kbd {
+    display: none;
+  }
 }
-.editor-status .muted {
-  color: #cfc7b6;
-  font-weight: 500;
+@media (max-width: 900px) {
+  .label-wide {
+    display: none;
+  }
+  .editor-bar {
+    flex-wrap: wrap;
+    row-gap: 0.35rem;
+  }
+  .doc-title {
+    flex-basis: calc(100% - 9rem);
+  }
+  .editor-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
 
 /* ── 대화상자 ─────────────────────────────────────────────── */
@@ -1286,7 +1311,9 @@ details > summary {
 
 /* 편집 화면에서는 상태 표시줄 위로 */
 .editor-screen ~ .review-badge {
-  bottom: 64px;
+  bottom: 34px;
+  left: auto;
+  right: 12px;
 }
 
 /* ── 스크롤 등장 ─────────────────────────────────────────── */
@@ -1405,4 +1432,87 @@ details > summary {
 }
 .login .mascot svg {
   width: 150px;
+}
+
+/* ── 크롬북 화면 최적화 ───────────────────────────────────────
+ * 학교 크롬북은 대부분 11.6" 1366×768 이고, 선반·창 제목줄을 빼면 높이가 635~720px 이다.
+ * 높이가 낮은 화면에서는 소개 카드를 줄여 시작 버튼이 첫 화면에 보이게 한다.
+ */
+.app-header {
+  padding-block: 0.5rem;
+}
+@media (max-height: 900px) {
+  .home-main {
+    padding-top: 1rem;
+  }
+  .hero {
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    padding: 1.1rem 1.8rem;
+    margin-bottom: 1rem;
+    border-radius: 22px;
+  }
+  .hero::before {
+    width: 230px;
+    height: 230px;
+    right: -60px;
+    top: -80px;
+  }
+  .hero-title {
+    font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+    margin: 0.45rem 0 0.35rem;
+  }
+  .hero-lead {
+    font-size: 0.98rem;
+    margin-bottom: 0;
+  }
+  .hero-art {
+    padding-top: 1.9rem;
+  }
+  .hero .mascot svg {
+    width: 118px;
+  }
+  .hero .bubble {
+    right: 70%;
+    top: -1.7rem;
+    max-width: 200px;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.7rem;
+  }
+  .hero .doodle {
+    transform: scale(0.7);
+  }
+  .hero .doodle-wave {
+    display: none;
+  }
+  .section-title {
+    margin: 0.4rem 0 0.7rem;
+  }
+  .action-card {
+    min-height: 132px;
+    padding: 1rem 1.2rem 0.9rem;
+  }
+  .action-icon {
+    width: 44px;
+    height: 44px;
+    margin: 0.5rem 0 0.2rem;
+    font-size: 1.3rem;
+  }
+  .action-title {
+    font-size: 1.2rem;
+  }
+  .drop-hint {
+    margin-top: 0.7rem;
+  }
+  .list-section {
+    margin-top: 1.4rem;
+  }
+}
+@media (max-height: 900px) and (max-width: 960px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  .hero-art {
+    display: none;
+  }
 }

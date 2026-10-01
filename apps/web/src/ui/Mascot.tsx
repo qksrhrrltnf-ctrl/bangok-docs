@@ -97,7 +97,7 @@ export function Doodles() {
       <svg className="doodle" style={{ left: '46%', top: 22 }} width="54" height="54" viewBox="0 0 54 54" aria-hidden="true">
         <path d="M27 4 L32 21 L50 22 L36 32 L41 50 L27 39 L13 50 L18 32 L4 22 L22 21 Z" fill="#F5C842" stroke="#151515" strokeWidth="3" strokeLinejoin="round" />
       </svg>
-      <svg className="doodle" style={{ left: 28, bottom: 18 }} width="150" height="26" viewBox="0 0 150 26" aria-hidden="true">
+      <svg className="doodle doodle-wave" style={{ left: 28, bottom: 18 }} width="150" height="26" viewBox="0 0 150 26" aria-hidden="true">
         <path d="M3 14 q12 -14 24 0 t24 0 t24 0 t24 0 t24 0 t24 0" fill="none" stroke="#2FB07A" strokeWidth="4.5" strokeLinecap="round" />
       </svg>
       <svg className="doodle" style={{ right: '36%', bottom: 26 }} width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
